@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>ctcv_gazebo</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>ctcv_gazebo package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
@@ -53,7 +53,6 @@
   
   <!-- make sure you have this on your system: -->
   <run_depend>urdf</run_depend>
-  <run_depend>patrolling_sim</run_depend> <!--v2.2.2 (06-01-2017 commit)-->
   <run_depend>map_server</run_depend>
   <run_depend>amcl</run_depend>
   <run_depend>move_base</run_depend>  
