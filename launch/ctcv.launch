@@ -1,0 +1,27 @@
+<!-- CTCV in Gazebo Launch -->
+
+<launch>
+  
+ <arg name="gui" default="true"/>
+  
+  <param name="/use_sim_time" value="true" /> <!-- assume that your clock is given by the simulator (simulated time) -->
+
+    <!-- add "- -verbose" to the gzserver and gzclient args if something is not working... -->
+    <node name="gazebo" pkg="gazebo_ros" type="gzserver" args="$(find ctcv_gazebo)/worlds/ctcv.world" required="true" output="screen"/>
+
+    <!-- Start gui -->
+    <group if="$(arg gui)">
+        <node name="gazebo_client" pkg="gazebo_ros" type="gzclient" args="$(find ctcv_gazebo)/worlds/ctcv.world" required="true" output="screen"/> 
+    </group>
+  
+
+    <!-- Spawn 1 robot in gazebo -->
+    
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find ctcv_gazebo)/urdf/stopy.urdf'"/>
+
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-x 24.0 -y 0.5 -z 0.0 -Y 3.14 -urdf -model StopyRobot -param robot_description"/> 
+    
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/> 
+  
+  
+</launch>

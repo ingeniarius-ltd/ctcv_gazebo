@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<launch>
+  
+    <!-- MAP SERVER -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find ctcv_gazebo)/map/ctcv_map.yaml"/>
+    
+    <!-- AMCL -->
+    <node pkg="amcl" type="amcl" name="amcl" output="screen">
+         <remap from="map" to="/map"/>
+         <remap from="static_map" to="/static_map"/>
+         <param name="transform_tolerance" value="0.25" />            
+    </node>   
+            
+    <!--AMCL initial position -->
+    <include file="$(find ctcv_gazebo)/config_files/robot_initial_pose_ctcv_map.xml" />
+
+    <!--Navigation-->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" >	 
+    <rosparam file="$(find ctcv_gazebo)/config_files/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find ctcv_gazebo)/config_files/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find ctcv_gazebo)/config_files/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find ctcv_gazebo)/config_files/global_costmap_params.yaml" command="load" />	
+    <rosparam file="$(find ctcv_gazebo)/config_files/move_base_and_local_planner_params.yaml" command="load" />
+        <!--<remap from="map" to="/map"/> -->  
+    </node>
+        
+    <!--- Uncomment this to run rviz! -->
+    <!--<node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find ctcv_gazebo)/config_files/rviz_config.rviz"/>-->
+    
+        
+    <!-- Show Voxel Grid in RVIZ -->
+    <node name="voxel_grid_2_point_cloud" pkg="costmap_2d" type="costmap_2d_cloud">
+        <remap from="voxel_grid" to="move_base/local_costmap/obstacle_layer/voxel_grid"/>
+        <remap from="voxel_marked_cloud" to="move_base/local_costmap/obstacle_layer/marked_cloud"/>
+        <remap from="voxel_unknown_cloud" to="move_base/local_costmap/obstacle_layer/unknown_cloud"/>
+    </node>
+
+  
+</launch>

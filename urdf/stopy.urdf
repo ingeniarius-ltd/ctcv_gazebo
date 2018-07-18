@@ -1,0 +1,229 @@
+<?xml version="1.0"?>
+<robot name="stopy" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+      
+    
+    
+ <!-- - - - - - - - - - - - Robot Base - - - - - - - - - - - -->
+  
+  <link name="base_link" >
+      <visual>      
+        <origin xyz="0 0 0" rpy="0 0 0" />
+	
+        <geometry>
+            <mesh filename="package://ctcv_gazebo/meshes/stopy_decimated.stl" />  <!--stopy.stl-->
+        </geometry>  
+        
+        <material name="skin"> <!--Colorize in Rviz (grey)-->
+            <color rgba="0.4 0.4 0.4 1.0" />
+        </material>
+    </visual>
+    
+  <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" /> 
+      <geometry>
+          <mesh filename="package://ctcv_gazebo/meshes/stopy_chull.stl" />
+      </geometry>
+    </collision>
+    
+    <inertial> <!--this should be fixed...-->
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="35"/>
+        <inertia ixx="10.0" ixy="0.0" ixz="0.0" iyy="10.0" iyz="0.0" izz="10.0"/>
+    </inertial>      
+  </link> 
+  
+  
+  <!-- colorize in Gazebo: -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+  
+  
+  
+  
+  
+  <!-- - - - - - - - - - - - RGBD (Orbbec) camera - - - - - - - - - - - -->
+  
+ <joint name="camera_joint" type="fixed">
+    <axis xyz="0 1 0" />
+    <origin xyz="0.245 0 1.17" rpy="0 0 0"/> 
+    <parent link="base_link"/>
+    <child link="camera_parent_link"/> <!-- This camera "parent" link provides Z pointing upwards -->
+  </joint>
+
+  <!-- Camera -->
+  <link name="camera_parent_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+       <box size="0.001 0.001 0.001"/>
+      </geometry>
+    <material name="camera_color"><!--Colorize in Rviz (black)-->
+        <color rgba="0.0 0.0 0.0 1.0" />
+    </material>     
+    </visual>
+  </link>  
+   
+  
+  <gazebo reference="camera_parent_link">
+    <material>Gazebo/Black</material>
+    
+ <sensor type="depth" name="orbbec_astra">
+     <update_rate>20.0</update_rate> <!--20 Hz instead of 30Hz-->
+      <camera name="camera"> 
+          <horizontal_fov>1.0472</horizontal_fov>   <!--60 deg-->
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>8</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <!-- Noise is sampled independently per pixel on each frame.
+               That pixel's noise value is added to each of its color
+               channels, which at that point lie in the range [0,1]. -->
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+
+  <plugin name="camera_controller" filename="libgazebo_ros_openni_kinect.so">
+        <baseline>0.2</baseline>
+        <alwaysOn>true</alwaysOn>
+        <!--<updateRate>1.0</updateRate> -->
+        <cameraName>camera</cameraName>
+        <imageTopicName>rgb/image_raw</imageTopicName>
+        <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+        <depthImageTopicName>depth/image_raw</depthImageTopicName>
+        <depthImageInfoTopicName>depth/camera_info</depthImageInfoTopicName>
+        <pointCloudTopicName>depth/points</pointCloudTopicName>
+        <frameName>/camera_link</frameName>  <!-- needs to be published in inverted frame (Z pointing forward) -->
+        <pointCloudCutoff>0.5</pointCloudCutoff>
+        
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+        
+        <!--<distortionK1>0.00000001</distortionK1>
+        <distortionK2>0.00000001</distortionK2>
+        <distortionK3>0.00000001</distortionK3>
+        <distortionT1>0.00000001</distortionT1>
+        <distortionT2>0.00000001</distortionT2>-->
+      
+        <CxPrime>0</CxPrime>
+        <Cx>0</Cx>
+        <Cy>0</Cy>
+        <focalLength>0</focalLength>
+        <hackBaseline>0</hackBaseline>
+    </plugin>
+    </sensor>        
+    
+  </gazebo> 
+  
+   <!-- Camera TF to "fix" where Z is pointing at -->
+   <joint name="camera_optical_joint" type="fixed">
+    <axis xyz="0 1 0" />
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+    <parent link="camera_parent_link"/>
+    <child link="camera_link"/>
+  </joint>
+    <!-- Camera Optical Frame -->
+    <link name="camera_link">
+        <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+        <box size="0.05 0.05 0.05"/>
+        </geometry>
+     <material name="depth_camera_color"> <!--Colorize in Rviz (black)-->
+            <color rgba="0.0 0.0 0.0 1.0" />
+        </material>
+        </visual>
+    </link>      
+  
+    
+    
+  
+    
+  <!-- - - - - - - - - - - - RPLIDAR A2 Laser - - - - - - - - - - - -->    
+  <joint name="laser_joint" type="fixed">
+    <axis xyz="0 1 0" />
+    <origin xyz="0 0 0.31" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="laser"/>
+  </joint>
+
+  <link name="laser">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+            <box size="0.05 0.05 0.05"/>
+      </geometry>
+       <material name="laser_color">  <!--Colorize in Rviz (black)-->
+            <color rgba="0.0 0.0 0.0 1.0" />
+        </material>       
+    </visual>
+  </link>
+  
+  <gazebo reference="laser">
+      <sensor type="ray" name="rplidar_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <update_rate>15.5</update_rate>
+      <ray> 
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159265359</min_angle>   <!-- 360 degrees -->
+            <max_angle>3.14159265359</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.10</min>
+          <max>6.0</max>    <!--6m range -->
+          <resolution>0.02</resolution> <!-- 2cm uncertainty -->
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <!-- Noise parameters based on published spec for Hokuyo laser
+               achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
+               stddev of 0.01m will put 99.7% of samples within 0.03m of the true
+               reading. -->
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="laser_controller" filename="libgazebo_ros_laser.so">
+        <topicName>scan</topicName>
+        <frameName>laser</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>       
+  
+    
+    
+  
+    
+  <!-- - - - - - - - - - - - Drive Controller - - - - - - - - - - - -->  
+    <gazebo>
+    <plugin name="drive_controller" filename="libgazebo_ros_planar_move.so">
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <odometryRate>25.0</odometryRate>
+      <robotBaseFrame>base_link</robotBaseFrame>
+    </plugin>
+  </gazebo>
+ 
+    
+  <!--TUTORIAL TO ADD SENSORS: http://gazebosim.org/tutorials?tut=ros_gzplugins-->
+
+  	
+</robot>

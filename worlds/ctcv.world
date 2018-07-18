@@ -1,0 +1,72 @@
+<!-- ctcv.world -->
+
+<?xml version="1.0"?>
+<sdf version="1.4">
+  <world name="default">
+  
+  
+
+   <physics type='ode'> <!-- 400 steps simulation instead of 1000 (lighter) --> 
+        <max_step_size>0.0025</max_step_size>
+        <real_time_factor>1.0</real_time_factor>
+        <real_time_update_rate>400.0</real_time_update_rate>
+        <gravity>0.000000 0.000000 -9.800000</gravity>
+    </physics>
+  
+  
+    <!-- change camera view -->
+    <gui>
+        <camera name="user_camera">
+        <pose>-1.5 -11.5 54.5 0 1.32 1.55</pose>
+        <!--<pose>22.9 1.24 1.8 0 0.384 -0.55</pose>-->
+        </camera>
+    </gui>
+    
+    <!-- ground plane (grid) and light (sun) -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    
+    <!-- CTCV environment -->
+    <model name="ctcv">
+      <pose>-29.675 5.5 0 1.5708 0 0</pose>
+      <static>true</static>
+      <link name="body">
+      
+        <visual name="visual">
+          <geometry>
+            <mesh>
+                <!--<uri>file://../meshes/ctcv.STL</uri>-->   <!-- relative path wouldn't work on roslaunch (kinetic), just standalone gazebo (v7) -->
+                <uri>model://ctcv_gazebo/meshes/ctcv.STL</uri> <!-- this required a change on the exports in "package.xml" -->
+                <scale>0.001 0.001 0.001</scale>
+            </mesh>
+          </geometry>     
+          
+            <!-- colorize the STL model -->
+            <material>
+                <ambient>0.65 0.65 0.65 1</ambient>
+                <diffuse>0.65 0.65 0.65 1</diffuse>
+                <specular>0.1 0.1 0.1 1</specular>
+                <emissive>0 0 0 0</emissive>
+            </material>
+            
+        </visual>
+
+       <collision name="collision">
+          <geometry>
+            <mesh>-->
+                <!--<uri>file://../meshes/ctcv.STL</uri>-->   <!-- relative path wouldn't work on roslaunch (kinetic), just standalone gazebo (v7) -->
+               <uri>model://ctcv_gazebo/meshes/ctcv.STL</uri>--> <!-- this required a change on the exports in "package.xml" -->
+                <scale>0.001 0.001 0.001</scale>
+            </mesh>
+          </geometry>  
+          </collision>
+    
+      </link>
+    </model>
+    
+  </world>
+</sdf>
